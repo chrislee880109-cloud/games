@@ -1,0 +1,367 @@
+<title>금용이 게임랜드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Jua&display=swap">
+<style>
+  /* Layout: a sky-to-meadow page; a header meadow where 금용이 strolls, then one card per game
+     (two columns on wide screens, one on phones), contact strip at the end. Single bright look by choice. */
+  :root {
+    color-scheme: light;
+    --sky-1: #2f8ff0;
+    --sky-2: #8fd2ff;
+    --sky-3: #e3f5ff;
+    --ink: #3b2a52;
+    --muted: #7a6b8f;
+    --card: #ffffff;
+    --cream: #fff5e1;
+    --line: #eadff7;
+    --wood: #b86a2e;
+    --wood-dark: #74391a;
+    --wood-light: #e3a462;
+    --jelly: #2a7df0;
+    --jelly-dark: #1450bd;
+    --pink: #ff6fae;
+    --pink-dark: #d63f73;
+    --orange: #ff8a2a;
+    --orange-dark: #d1600e;
+    --yellow: #ffc21a;
+    --grape: #9a5cf0;
+    --grass: #6cc04a;
+    --fog: #232a63;
+    --display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --font: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: var(--font); font-size: 15px; line-height: 1.55; color: var(--ink);
+    background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 40%, var(--sky-3) 75%, #c9eba6 100%) fixed, var(--sky-2);
+    padding-block: 28px 140px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  h1, h2, h3, p { margin: 0; }
+
+  .scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .cloud { position: absolute; width: 160px; height: 50px; background: #fff; border-radius: 99px; opacity: .9; animation: drift 80s linear infinite; }
+  .cloud::before, .cloud::after { content: ""; position: absolute; background: #fff; border-radius: 50%; }
+  .cloud::before { width: 74px; height: 74px; left: 24px; top: -36px; }
+  .cloud::after { width: 54px; height: 54px; left: 82px; top: -24px; }
+  .cloud.c1 { top: 10%; left: -10%; }
+  .cloud.c2 { top: 30%; left: 60%; transform: scale(1.3); animation-duration: 110s; animation-delay: -50s; }
+  .cloud.c3 { top: 55%; left: 20%; transform: scale(.75); opacity: .7; animation-duration: 95s; animation-delay: -25s; }
+  @keyframes drift { from { translate: -30vw 0; } to { translate: 130vw 0; } }
+  .ground { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 150px; display: block; }
+
+  .app { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; min-width: 0; }
+
+  /* header */
+  .hero { text-align: center; color: #fff; margin-bottom: 18px; }
+  .hero h1 {
+    font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1.1; text-wrap: balance;
+    text-shadow: 0 4px 0 var(--jelly-dark), 3px 0 0 var(--jelly-dark), -3px 0 0 var(--jelly-dark), 0 -2px 0 var(--jelly-dark);
+  }
+  .hero p { margin-top: 8px; font-size: 16px; color: #eef7ff; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+
+  .meadow {
+    position: relative; height: 132px; margin: 0 auto 26px; max-width: 620px; border-radius: 26px;
+    background: linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.2) 52%, #8fd365 52%, var(--grass) 100%);
+    border: 4px solid rgba(255,255,255,.7);
+  }
+  .meadow .flower { position: absolute; bottom: 10px; width: 12px; height: 12px; border-radius: 50%; }
+  .meadow .f1 { left: 10%; background: var(--pink); }
+  .meadow .f2 { left: 36%; bottom: 26px; background: var(--yellow); }
+  .meadow .f3 { left: 64%; background: var(--grape); }
+  .meadow .f4 { left: 88%; bottom: 22px; background: var(--orange); }
+  .wanderer { position: absolute; left: 40%; bottom: 6px; width: 72px; transition: left var(--dur, 3s) ease-in-out, bottom var(--dur, 3s) ease-in-out; }
+  .wanderer canvas { display: block; width: 72px; height: 72px; animation: bob 2.4s ease-in-out infinite; }
+  .wanderer.walking canvas { animation: waddle .42s ease-in-out infinite; }
+  .wanderer.jump canvas { animation: jump .6s ease-out; }
+  .wanderer.to-left canvas { scale: -1 1; }
+  .nametag {
+    position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%);
+    font-family: "Gaegu", var(--display); font-weight: 700; font-size: 23px; line-height: 1.2; white-space: nowrap;
+    color: var(--orange-dark); background: #fff; padding: 1px 13px 3px; border-radius: 99px;
+    border: 3px solid var(--wood-light); box-shadow: 0 3px 0 var(--wood);
+  }
+  .nametag::after { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -7px; border: 7px solid transparent; border-top-color: var(--wood-light); }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes waddle { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-7px) rotate(6deg); } }
+  @keyframes jump { 0% { transform: scale(1.1, .9); } 40% { transform: translateY(-34px) scale(.95, 1.05); } 100% { transform: none; } }
+
+  .section-title { font-family: var(--display); font-weight: 400; font-size: 24px; color: #fff; margin: 0 4px 12px; text-shadow: 0 2px 0 var(--jelly-dark); }
+
+  /* game cards */
+  .games { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .game {
+    display: flex; flex-direction: column; min-width: 0; background: var(--card); border-radius: 28px; overflow: hidden;
+    border: 5px solid #fff; box-shadow: 0 6px 0 rgba(20, 60, 120, .18), 0 18px 34px rgba(20, 60, 120, .2);
+    transition: transform .15s;
+  }
+  .game:hover { transform: translateY(-4px); }
+  .art { position: relative; height: 170px; overflow: hidden; }
+  .art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+  .art .tag { z-index: 1; }
+  .num .art { background: linear-gradient(180deg, #4aa8ff 0%, #9fd8ff 60%, #ffd8ef 100%); }
+  .maze .art { background: linear-gradient(180deg, #232a63 0%, #2b1f55 100%); }
+  .art .tag { position: absolute; top: 12px; left: 12px; font-family: var(--display); font-size: 14px; padding: 2px 11px; border-radius: 99px; background: rgba(255,255,255,.9); color: var(--ink); }
+  .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .body h3 { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.2; }
+  .body p { color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--cream); color: var(--wood-dark); white-space: nowrap; }
+  .num .chip { background: #eef2ff; color: #4338ca; }
+  .play {
+    margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--display); font-size: 20px; color: #fff; text-decoration: none; padding: 12px 16px;
+    border-radius: 20px; border: 3px solid rgba(0,0,0,.18); position: relative;
+    transition: transform .08s, box-shadow .08s, filter .15s;
+  }
+  .play::after { content: ""; position: absolute; left: 14px; right: 45%; top: 5px; height: 6px; border-radius: 99px; background: rgba(255,255,255,.45); }
+  .play:hover { filter: brightness(1.06); }
+  .play:active { transform: translateY(3px); }
+  .play:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+  .num .play { background: linear-gradient(180deg, #ffb066, var(--orange) 55%, var(--orange-dark)); box-shadow: 0 5px 0 #a8480a; }
+  .maze .play { background: linear-gradient(180deg, #62b0ff, var(--jelly) 55%, var(--jelly-dark)); box-shadow: 0 5px 0 var(--wood-dark); border-color: var(--wood-dark); }
+  .new-tab { font-size: 12px; color: var(--muted); text-align: center; }
+
+  /* contact */
+  .contact {
+    margin-top: 26px; background: var(--cream); border: 5px solid var(--wood); border-radius: 26px;
+    box-shadow: inset 0 0 0 3px var(--wood-light), 0 5px 0 var(--wood-dark); padding: 18px 20px;
+    display: grid; grid-template-columns: auto 1fr; gap: 14px 18px; align-items: center;
+  }
+  .contact h2 { font-family: var(--display); font-weight: 400; font-size: 22px; }
+  .contact .ids { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+  .idrow { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 16px; padding: 6px 8px 6px 12px; border: 2px solid #f3e1bf; min-width: 0; }
+  .idrow .label { font-size: 12px; color: var(--muted); }
+  .idrow .id { font-family: var(--display); font-size: 18px; user-select: all; word-break: break-all; }
+  .idrow button {
+    font: inherit; font-family: var(--display); font-size: 14px; cursor: pointer; color: #fff; padding: 6px 12px;
+    border-radius: 12px; border: 2px solid var(--wood-dark); background: var(--wood); box-shadow: 0 3px 0 var(--wood-dark);
+  }
+  .idrow button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-dark); }
+  .idrow button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+    transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: all .22s;
+    background: var(--wood-dark); color: #fff; border-radius: 16px; padding: 10px 18px; font-family: var(--display); font-size: 16px;
+    max-width: calc(100% - 32px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 640px) {
+    body { padding-block: 18px 110px; }
+    .hero h1 { font-size: 36px; }
+    .contact { grid-template-columns: 1fr; }
+    .contact .ids { justify-content: flex-start; }
+    .ground { height: 110px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cloud, .wanderer canvas, .game { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="scene" aria-hidden="true">
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <svg class="ground" viewBox="0 0 1200 150" preserveAspectRatio="none">
+    <path d="M0 70 C 200 30, 400 60, 600 50 S 1000 20, 1200 60 L 1200 150 L 0 150 Z" fill="#7cc84a"/>
+    <path d="M0 105 C 260 80, 520 100, 760 92 S 1060 84, 1200 96 L 1200 150 L 0 150 Z" fill="#5fae3b"/>
+    <rect x="90" y="32" width="5" height="56" fill="#f4e9d8"/><circle cx="92" cy="30" r="16" fill="#ff8a2a"/>
+    <rect x="1080" y="28" width="5" height="58" fill="#f4e9d8"/><circle cx="1082" cy="26" r="15" fill="#ff6fae"/>
+    <rect x="30" y="84" width="16" height="30" rx="6" fill="#f6ead6"/><ellipse cx="38" cy="84" rx="30" ry="17" fill="#2a7df0"/>
+    <rect x="1130" y="80" width="16" height="32" rx="6" fill="#f6ead6"/><ellipse cx="1138" cy="80" rx="28" ry="16" fill="#9a5cf0"/>
+  </svg>
+</div>
+
+<main class="app">
+  <header class="hero">
+    <h1>금용이 게임랜드</h1>
+    <p>하고 싶은 게임을 골라 보세요!</p>
+  </header>
+
+  <div class="meadow" aria-hidden="true">
+    <span class="flower f1"></span><span class="flower f2"></span><span class="flower f3"></span><span class="flower f4"></span>
+    <div class="wanderer" id="wanderer">
+      <span class="nametag">금용이</span>
+      <canvas id="geum" width="144" height="144"></canvas>
+    </div>
+  </div>
+
+  <h2 class="section-title">🎮 게임 선택</h2>
+  <div class="games">
+    <article class="game num">
+      <div class="art"><span class="tag">추리 · 두뇌</span><canvas id="art-num" width="600" height="340" aria-hidden="true"></canvas></div>
+      <div class="body">
+        <h3>숫자 맞히기 게임</h3>
+        <p>숨겨진 숫자를 가장 적은 시도로 맞혀 보세요. 숫자와 자리가 모두 맞은 개수만 알려줘요.</p>
+        <div class="chips"><span class="chip">쉬움 3자리</span><span class="chip">일반 4자리</span><span class="chip">어려움 5자리</span><span class="chip">🏆 공유 랭킹</span></div>
+        <a class="play" href="https://claude.ai/artifact/JFeCex4WqR6da2QPWWV9vd" target="_blank" rel="noopener">▶ 플레이하기</a>
+      </div>
+    </article>
+
+    <article class="game maze">
+      <div class="art"><span class="tag">모험 · 탐험</span><canvas id="art-maze" width="600" height="340" aria-hidden="true"></canvas></div>
+      <div class="body">
+        <h3>캔디마을 미로 탈출</h3>
+        <p>안개 낀 정원 미로에서 열쇠와 투명망토를 모아 출구를 찾으세요. 함정과 고사포탑을 조심!</p>
+        <div class="chips"><span class="chip">쉬움 9×9</span><span class="chip">일반 12×12</span><span class="chip">어려움 20×20</span><span class="chip">🏆 랭킹</span></div>
+        <a class="play" href="https://claude.ai/artifact/U1kXxArfsrzvsFpWvHTcTx" target="_blank" rel="noopener">▶ 플레이하기</a>
+      </div>
+    </article>
+  </div>
+  <p class="new-tab" style="margin-top:12px;color:#5b6b80">게임은 새 탭에서 열려요. 이 페이지로 돌아오면 다른 게임을 고를 수 있어요.</p>
+
+  <section class="contact">
+    <h2>💬 개발자연락처</h2>
+    <div class="ids">
+      <div class="idrow"><div><div class="label">WeChat</div><div class="id" id="id-wechat">chrislee0109</div></div><button data-copy="id-wechat">복사</button></div>
+      <div class="idrow"><div><div class="label">KakaoTalk</div><div class="id" id="id-kakao">flrmafyd0109</div></div><button data-copy="id-kakao">복사</button></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const rnd = n => Math.floor(Math.random() * n);
+
+  /* 복사 */
+  let tt;
+  const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 1800); };
+  document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+    const el = $(b.dataset.copy), text = el.textContent.trim();
+    const fallback = () => {
+      const r = document.createRange(); r.selectNodeContents(el);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      let ok = false; try { ok = document.execCommand('copy'); } catch {}
+      toast(ok ? `복사했어요: ${text}` : 'ID를 선택해 두었어요. 직접 복사해 주세요.');
+    };
+    try { navigator.clipboard.writeText(text).then(() => toast(`복사했어요: ${text}`), fallback); } catch { fallback(); }
+  }));
+
+  /* 캐릭터 그리기 */
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  function critter(c, cx, cy, r, pal, ears) {
+    const [light, mid, dark] = pal;
+    c.save(); c.fillStyle = dark; c.strokeStyle = dark;
+    if (ears === 'round') { c.beginPath(); c.arc(cx - r * .62, cy - r * .72, r * .34, 0, 7); c.arc(cx + r * .62, cy - r * .72, r * .34, 0, 7); c.fill(); }
+    else if (ears === 'bunny') for (const s of [-1, 1]) {
+      c.fillStyle = dark; c.beginPath(); c.ellipse(cx + s * r * .4, cy - r * 1.15, r * .22, r * .58, s * .15, 0, 7); c.fill();
+      c.fillStyle = '#ffd1e0'; c.beginPath(); c.ellipse(cx + s * r * .4, cy - r * 1.12, r * .1, r * .4, s * .15, 0, 7); c.fill();
+    }
+    else if (ears === 'cat') for (const s of [-1, 1]) { c.beginPath(); c.moveTo(cx + s * r * .25, cy - r * .7); c.lineTo(cx + s * r * .75, cy - r * 1.25); c.lineTo(cx + s * r * .92, cy - r * .45); c.closePath(); c.fill(); }
+    else { c.lineWidth = r * .1; c.lineCap = 'round'; c.beginPath(); c.moveTo(cx, cy - r * .85); c.quadraticCurveTo(cx + r * .1, cy - r * 1.3, cx + r * .3, cy - r * 1.45); c.stroke(); c.fillStyle = '#ffc21a'; c.beginPath(); c.arc(cx + r * .32, cy - r * 1.48, r * .17, 0, 7); c.fill(); }
+    const g = c.createRadialGradient(cx - r * .35, cy - r * .4, r * .1, cx, cy, r * 1.1);
+    g.addColorStop(0, light); g.addColorStop(.55, mid); g.addColorStop(1, dark);
+    c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy + r * .05, r, r * .92, 0, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.ellipse(cx - r * .38, cy - r * .42, r * .24, r * .12, -.5, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(cx - r * .3, cy, r * .22, 0, 7); c.arc(cx + r * .3, cy, r * .22, 0, 7); c.fill();
+    c.fillStyle = '#3a2410'; c.beginPath(); c.arc(cx - r * .24, cy + r * .03, r * .11, 0, 7); c.arc(cx + r * .36, cy + r * .03, r * .11, 0, 7); c.fill();
+    c.fillStyle = '#ff8fb0'; c.beginPath(); c.arc(cx - r * .58, cy + r * .32, r * .12, 0, 7); c.arc(cx + r * .58, cy + r * .32, r * .12, 0, 7); c.fill();
+    c.strokeStyle = '#3a2410'; c.lineWidth = r * .07; c.lineCap = 'round';
+    c.beginPath(); c.arc(cx + r * .05, cy + r * .3, r * .14, .15 * Math.PI, .85 * Math.PI); c.stroke();
+    c.restore();
+  }
+  const PALETTES = [
+    ['#8fd0ff', '#2a7df0', '#1450bd'], ['#ffc2d8', '#ff6fa0', '#d63f73'], ['#ffd29a', '#ff8a2a', '#d1600e'],
+    ['#d9c2ff', '#9a5cf0', '#6c35c4'], ['#c8f5c0', '#5cc46a', '#2f8a3c'], ['#fff0a6', '#ffc21a', '#d39400'],
+  ];
+  const EARS = ['round', 'bunny', 'cat', 'antenna'];
+
+  /* 금용이: 들어올 때마다 랜덤 모습 */
+  const g = $('geum'), gc = g.getContext('2d');
+  critter(gc, g.width / 2, g.height * .6, g.width * .3, PALETTES[rnd(PALETTES.length)], EARS[rnd(EARS.length)]);
+  (function wander() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const el = $('wanderer'), meadow = el.parentElement;
+    const r = (a, b) => a + Math.random() * (b - a);
+    let x = meadow.clientWidth * .4, y = 6;
+    function step() {
+      const w = meadow.clientWidth;
+      const nx = r(4, Math.max(8, w - 76)), ny = r(4, 22);
+      const dur = Math.max(1.2, Math.hypot(nx - x, ny - y) / 90);
+      el.classList.toggle('to-left', nx < x);
+      el.style.setProperty('--dur', dur + 's');
+      el.classList.add('walking');
+      el.style.left = nx + 'px'; el.style.bottom = ny + 'px';
+      x = nx; y = ny;
+      setTimeout(() => {
+        el.classList.remove('walking');
+        if (Math.random() < .4) { el.classList.add('jump'); setTimeout(() => el.classList.remove('jump'), 650); }
+        setTimeout(step, r(900, 2600));
+      }, dur * 1000);
+    }
+    setTimeout(step, 700);
+  })();
+
+  /* 카드 그림: 숫자 게임 */
+  function drawNum() {
+    const c = $('art-num'), x = c.getContext('2d'), W = c.width, H = c.height;
+    x.clearRect(0, 0, W, H);
+    // 구름
+    x.fillStyle = 'rgba(255,255,255,.85)';
+    for (const [cx, cy, s] of [[90, 70, 1], [500, 50, .8], [430, 280, .6]]) {
+      x.beginPath(); x.ellipse(cx, cy, 60 * s, 20 * s, 0, 0, 7); x.ellipse(cx - 18 * s, cy - 16 * s, 26 * s, 24 * s, 0, 0, 7); x.ellipse(cx + 18 * s, cy - 12 * s, 22 * s, 20 * s, 0, 0, 7); x.fill();
+    }
+    // 떠 있는 섬
+    x.fillStyle = '#a98cf2';
+    x.beginPath(); x.moveTo(150, 250); x.lineTo(450, 250); x.lineTo(400, 300); x.lineTo(330, 330); x.lineTo(260, 305); x.lineTo(190, 290); x.closePath(); x.fill();
+    x.fillStyle = '#b9ea4f'; rr(x, 140, 236, 320, 24, 12); x.fill();
+    // 숫자 곰 타일
+    const tiles = [['3', '#ff6fae'], ['?', '#ff993d'], ['7', '#45b2ff']];
+    tiles.forEach(([t, col], i) => {
+      const cx = 220 + i * 80, cy = 180;
+      x.fillStyle = col;
+      x.beginPath(); x.arc(cx - 22, cy - 30, 13, 0, 7); x.arc(cx + 22, cy - 30, 13, 0, 7); x.fill();
+      x.beginPath(); x.ellipse(cx, cy, 34, 32, 0, 0, 7); x.fill();
+      x.fillStyle = 'rgba(255,255,255,.5)'; x.beginPath(); x.ellipse(cx - 12, cy - 14, 10, 5, -.5, 0, 7); x.fill();
+      x.fillStyle = '#fff'; x.font = '40px Jua, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(t, cx, cy + 3);
+    });
+  }
+  /* 카드 그림: 미로 */
+  function drawMaze() {
+    const c = $('art-maze'), x = c.getContext('2d'), W = c.width, H = c.height;
+    x.clearRect(0, 0, W, H);
+    x.fillStyle = 'rgba(255,255,255,.2)';
+    for (let i = 0; i < 70; i++) { x.beginPath(); x.arc((i * 97) % W, (i * 53) % H, 1 + (i % 3) * .6, 0, 7); x.fill(); }
+    const cs = 44, ox = 80, oy = 40, path = [[0, 0], [1, 0], [1, 1], [2, 1], [3, 1], [3, 2], [4, 2], [5, 2], [5, 3], [6, 3], [7, 3]];
+    // 밝혀진 길
+    for (const [gx, gy] of path) {
+      x.fillStyle = '#79c64c'; x.fillRect(ox + gx * cs, oy + gy * cs, cs + .5, cs + .5);
+      x.fillStyle = '#f3e3c2'; rr(x, ox + gx * cs + 10, oy + gy * cs + 10, cs - 20, cs - 20, 7); x.fill();
+    }
+    for (let k = 1; k < path.length; k++) {
+      const [ax, ay] = path[k - 1], [bx, by] = path[k];
+      x.fillStyle = '#f3e3c2';
+      x.fillRect(ox + Math.min(ax, bx) * cs + cs * .34 + (ax !== bx ? cs * .26 : 0), oy + Math.min(ay, by) * cs + cs * .34 + (ay !== by ? cs * .26 : 0),
+        ax !== bx ? cs * .8 : cs * .32, ay !== by ? cs * .8 : cs * .32);
+    }
+    // 기억한 벽
+    x.lineCap = 'round';
+    const walls = [[[1, 0], [2, 0]], [[0, 1], [1, 1]], [[2, 2], [3, 2]], [[4, 1], [4, 2]], [[6, 3], [6, 4]], [[5, 4], [6, 4]], [[2, 1], [2, 2]]];
+    for (const [[a, b], [cc, d]] of walls) {
+      x.strokeStyle = '#6b3414'; x.lineWidth = 8; x.beginPath(); x.moveTo(ox + a * cs, oy + b * cs); x.lineTo(ox + cc * cs, oy + d * cs); x.stroke();
+      x.strokeStyle = '#d58a45'; x.lineWidth = 3; x.beginPath(); x.moveTo(ox + a * cs, oy + b * cs); x.lineTo(ox + cc * cs, oy + d * cs); x.stroke();
+    }
+    const em = (ch, gx, gy, s = 26) => { x.font = `${s}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(ch, ox + gx * cs + cs / 2, oy + gy * cs + cs / 2 + 2); };
+    em('🏠', 0, 0, 22); em('🔑', 3, 1); em('🎁', 5, 3);
+    // 출구 빛
+    x.fillStyle = 'rgba(255, 214, 90, .35)'; x.beginPath(); x.arc(ox + 8.5 * cs, oy + 3.5 * cs, 26, 0, 7); x.fill();
+    em('🚪', 8, 3, 28);
+    // 랜턴 빛 + 주인공
+    const px = ox + 4.5 * cs, py = oy + 2.5 * cs;
+    const glow = x.createRadialGradient(px, py, 8, px, py, 70); glow.addColorStop(0, 'rgba(255,236,160,.4)'); glow.addColorStop(1, 'rgba(255,236,160,0)');
+    x.fillStyle = glow; x.beginPath(); x.arc(px, py, 70, 0, 7); x.fill();
+    critter(x, px, py + 2, 15, PALETTES[0], 'round');
+  }
+  drawNum(); drawMaze();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawNum(); drawMaze(); });
+})();
+</script>
